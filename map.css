@@ -32,3 +32,13 @@ body {
   stroke-width: 1;
   pointer-events: auto;
 }
+
+header {
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+}
+
+label {
+  margin-left: auto;
+}

@@ -19,6 +19,39 @@ const map = new mapboxgl.Map({
 // Select SVG overlay
 const svg = d3.select('#map').select('svg');
 
+// Slider elements
+const timeSlider = document.getElementById('time-slider');
+const selectedTime = document.getElementById('selected-time');
+const anyTimeLabel = document.getElementById('any-time');
+
+let timeFilter = -1;
+
+function formatTime(minutes) {
+  const date = new Date();
+  date.setHours(0, minutes);
+
+  return date.toLocaleString('en-US', {
+    timeStyle: 'short',
+  });
+}
+
+function updateTimeDisplay() {
+  if (timeFilter === -1) {
+    selectedTime.textContent = '';
+    anyTimeLabel.style.display = 'inline';
+  } else {
+    selectedTime.textContent = formatTime(timeFilter);
+    anyTimeLabel.style.display = 'none';
+  }
+}
+
+timeSlider.addEventListener('input', () => {
+  timeFilter = Number(timeSlider.value);
+  updateTimeDisplay();
+});
+
+updateTimeDisplay();
+
 // Convert longitude/latitude into pixel coordinates
 function getCoords(station) {
   const point = new mapboxgl.LngLat(+station.lon, +station.lat);
@@ -88,50 +121,53 @@ map.on('load', async () => {
 
   console.log('Trips Array:', trips);
 
+  // Count departures from each station
   const departures = d3.rollup(
-  trips,
-  (v) => v.length,
-  (d) => d.start_station_id
-);
+    trips,
+    (v) => v.length,
+    (d) => d.start_station_id
+  );
 
-const arrivals = d3.rollup(
-  trips,
-  (v) => v.length,
-  (d) => d.end_station_id
-);
+  // Count arrivals to each station
+  const arrivals = d3.rollup(
+    trips,
+    (v) => v.length,
+    (d) => d.end_station_id
+  );
 
-stations = stations.map((station) => {
-  let id = station.short_name;
+  // Add traffic values to each station
+  stations = stations.map((station) => {
+    const id = station.short_name;
 
-  station.arrivals = arrivals.get(id) ?? 0;
-  station.departures = departures.get(id) ?? 0;
-  station.totalTraffic = station.arrivals + station.departures;
+    station.arrivals = arrivals.get(id) ?? 0;
+    station.departures = departures.get(id) ?? 0;
+    station.totalTraffic = station.arrivals + station.departures;
 
-  return station;
-});
+    return station;
+  });
 
-console.log('Stations with traffic:', stations);
+  console.log('Stations with traffic:', stations);
+
+  // Size circle radius by total traffic
+  const radiusScale = d3
+    .scaleSqrt()
+    .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+    .range([0, 25]);
 
   // Add circles for stations
-  const radiusScale = d3
-  .scaleSqrt()
-  .domain([0, d3.max(stations, (d) => d.totalTraffic)])
-  .range([0, 25]);
-
-// Add circles for stations
-   const circles = svg
-  .selectAll('circle')
-  .data(stations)
-  .enter()
-  .append('circle')
-  .attr('r', (d) => radiusScale(d.totalTraffic))
-  .each(function (d) {
-    d3.select(this)
-      .append('title')
-      .text(
-        `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`
-      );
-  });
+  const circles = svg
+    .selectAll('circle')
+    .data(stations)
+    .enter()
+    .append('circle')
+    .attr('r', (d) => radiusScale(d.totalTraffic))
+    .each(function (d) {
+      d3.select(this)
+        .append('title')
+        .text(
+          `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`
+        );
+    });
 
   // Update circle positions
   function updatePositions() {
