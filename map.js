@@ -22,7 +22,6 @@ const svg = d3.select('#map').select('svg');
 // Convert longitude/latitude into pixel coordinates
 function getCoords(station) {
   const point = new mapboxgl.LngLat(+station.lon, +station.lat);
-
   const { x, y } = map.project(point);
 
   return { cx: x, cy: y };
@@ -82,13 +81,20 @@ map.on('load', async () => {
 
   console.log('Stations Array:', stations);
 
+  // Load Bluebikes traffic data
+  const trips = await d3.csv(
+    'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv'
+  );
+
+  console.log('Trips Array:', trips);
+
   // Add circles for stations
   const circles = svg
-  .selectAll('circle')
-  .data(stations)
-  .enter()
-  .append('circle')
-  .attr('r', 5);
+    .selectAll('circle')
+    .data(stations)
+    .enter()
+    .append('circle')
+    .attr('r', 5);
 
   // Update circle positions
   function updatePositions() {
