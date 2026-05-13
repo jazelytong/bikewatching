@@ -113,12 +113,25 @@ stations = stations.map((station) => {
 console.log('Stations with traffic:', stations);
 
   // Add circles for stations
-  const circles = svg
-    .selectAll('circle')
-    .data(stations)
-    .enter()
-    .append('circle')
-    .attr('r', 5);
+  const radiusScale = d3
+  .scaleSqrt()
+  .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+  .range([0, 25]);
+
+// Add circles for stations
+   const circles = svg
+  .selectAll('circle')
+  .data(stations)
+  .enter()
+  .append('circle')
+  .attr('r', (d) => radiusScale(d.totalTraffic))
+  .each(function (d) {
+    d3.select(this)
+      .append('title')
+      .text(
+        `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`
+      );
+  });
 
   // Update circle positions
   function updatePositions() {
