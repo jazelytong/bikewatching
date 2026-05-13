@@ -46,15 +46,26 @@ body {
 
 header {
   display: flex;
-  gap: 1em;
   align-items: baseline;
+  gap: 1em;
 }
 
 label {
   margin-left: auto;
+  display: grid;
+  grid-template-columns: auto 22em;
+  column-gap: 0.5em;
+  align-items: center;
 }
 
-time, em#any-time {
+#time-slider {
+  width: 22em;
+}
+
+time,
+em#any-time {
+  grid-column: 2;
+  justify-self: end;
   display: block;
 }
 
@@ -65,27 +76,33 @@ em#any-time {
 
 .legend {
   display: flex;
-  gap: 1px;
+  justify-content: center;
+  align-items: center;
+  gap: 1.2em;
   margin-block: 1em;
+  font-size: 0.85em;
 }
 
-.legend > div {
-  flex: 1;
-  background: var(--color);
-  padding: 0.3em 1.2em;
-  color: white;
-  font-size: 0.85em;
+.legend::before {
+  content: 'LEGEND:';
+  color: #888;
   font-weight: bold;
 }
 
-.legend > div:first-child {
-  text-align: left;
+.legend > div {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  color: black;
+  font-weight: normal;
+  padding: 0;
+  background: none;
 }
 
-.legend > div:nth-child(2) {
-  text-align: center;
-}
-
-.legend > div:last-child {
-  text-align: right;
+.legend > div::before {
+  content: '';
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: var(--color);
 }
